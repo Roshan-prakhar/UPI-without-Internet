@@ -512,6 +512,79 @@
         @media (max-width: 500px) {
             .stats-row { grid-template-columns: 1fr; }
         }
+
+        /* ─── DARK MODE ───────────────────────────── */
+        body.dark {
+            --bg: #0d1117;
+            --card-bg: #161b22;
+            --card-border: #30363d;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --primary-light: #1c2d50;
+            --accent-light: #0d2818;
+            --danger-light: #2c0b0b;
+            --warning-light: #2c1c00;
+            --shadow: 0 1px 4px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.2);
+        }
+        body.dark .topbar { background: #161b22; border-bottom-color: #30363d; }
+        body.dark .topbar-left h2 { color: #e6edf3; }
+        body.dark .topbar-badge { background: #1c2d50; color: #58a6ff; }
+        body.dark .status-pill { background: #0d1117; border-color: #30363d; color: #8b949e; }
+        body.dark th { background: #0d1117; color: #8b949e; border-bottom-color: #30363d; }
+        body.dark td { border-bottom-color: #21262d; color: #e6edf3; }
+        body.dark tr:hover td { background: #1c2128; }
+        body.dark .device { background: #0d1117; border-color: #30363d; }
+        body.dark .device.bridge { background: #0d2818; border-color: #2ea043; }
+        body.dark .device-name { color: #e6edf3; }
+        body.dark .badge-offline { background: #21262d; color: #8b949e; border-color: #30363d; }
+        body.dark .packet-id { background: #21262d; color: #8b949e; }
+        body.dark .device.bridge .packet-id { background: #0d2818; color: #3fb950; }
+        body.dark button.secondary { background: #21262d; color: #e6edf3; border-color: #30363d; }
+        body.dark button.secondary:hover { background: #2d333b; }
+        body.dark input, body.dark select { background: #0d1117; color: #e6edf3; border-color: #30363d; }
+        body.dark .chip-SETTLED { background: #0d2818; color: #3fb950; }
+        body.dark .chip-REJECTED { background: #2c0b0b; color: #f85149; }
+        body.dark .chip-DUPLICATE_DROPPED { background: #2c1c00; color: #d29922; }
+        body.dark .chip-INVALID { background: #2c0b0b; color: #f85149; }
+        body.dark .step-label { color: #e6edf3; }
+        body.dark .card-title { color: #e6edf3; }
+        body.dark .stat-value { color: #e6edf3; }
+        body.dark .demo-body { background: #161b22; }
+        body.dark .step-row { border-bottom-color: #30363d; }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            color: var(--text-sidebar);
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .theme-toggle:hover { color: #f1f5f9; background: rgba(255,255,255,0.04); }
+        .theme-toggle-switch {
+            margin-left: auto;
+            width: 32px; height: 18px;
+            background: #334155;
+            border-radius: 9px;
+            position: relative;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .theme-toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: #94a3b8;
+            transition: transform 0.2s, background 0.2s;
+        }
+        body.dark .theme-toggle-switch { background: #2563eb; }
+        body.dark .theme-toggle-switch::after { transform: translateX(14px); background: #fff; }
     </style>
 </head>
 <body>
@@ -519,34 +592,19 @@
 <!-- ═══════════════════════════ SIDEBAR ═════════════════════════════ -->
 <aside class="sidebar">
     <div class="sidebar-logo">
-        <div class="logo-icon">📡</div>
+        <div class="logo-icon">�</div>
         <span>UPI Mesh<small>Offline Payment Network</small></span>
     </div>
 
-    <div class="sidebar-section-label">Main Menu</div>
+    <div class="sidebar-section-label">Menu</div>
     <a class="nav-item active" href="#">
         <span class="nav-icon">🏠</span> Dashboard
     </a>
-    <a class="nav-item" href="#">
-        <span class="nav-icon">📱</span> Devices
-    </a>
-    <a class="nav-item" href="#">
-        <span class="nav-icon">💸</span> Transactions
-    </a>
-    <a class="nav-item" href="#">
-        <span class="nav-icon">🏦</span> Accounts
-    </a>
-    <a class="nav-item" href="#">
-        <span class="nav-icon">🔐</span> Security
-    </a>
-
-    <div class="sidebar-section-label">Other</div>
-    <a class="nav-item" href="#">
-        <span class="nav-icon">⚙️</span> Settings
-    </a>
-    <a class="nav-item" href="#">
-        <span class="nav-icon">❓</span> Help Center
-    </a>
+    <div class="theme-toggle" onclick="toggleDarkMode()" title="Toggle dark / light mode">
+        <span class="nav-icon">⚙️</span>
+        Settings — Dark Mode
+        <div class="theme-toggle-switch"></div>
+    </div>
 
     <div class="sidebar-footer">
         Mesh Protocol v2.1<br>
@@ -858,6 +916,17 @@
 
     refresh();
     setInterval(refresh, 5000);
+
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    (function () {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark');
+        }
+    })();
 </script>
 </body>
 </html>
