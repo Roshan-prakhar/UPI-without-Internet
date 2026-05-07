@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI Offline Mesh - Live Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #eef2f5 0%, #e0e7ef 100%);
+            min-height: 100vh;
+            color: #1a4d8c;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a4d8c;
+        }
+
+        .tagline {
+            color: #6c7a89;
+            font-size: 0.9rem;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #1a4d8c;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0f2b3d;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #1a4d8c;
+            border: 2px solid #1a4d8c;
+        }
+
+        .btn-secondary:hover {
+            background: #1a4d8c;
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #1a4d8c, #0f2b3d);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #6c7a89;
+            margin-bottom: 2rem;
+        }
+
+        .trusted-by {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .trusted-by span {
+            color: #6c7a89;
+            font-size: 0.9rem;
+        }
+
+        .company-logo {
+            font-weight: 600;
+            color: #1a4d8c;
+        }
+
+        /* Demo Section */
+        .demo-section {
+            margin-top: 3rem;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .demo-header h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1a4d8c;
+        }
+
+        .demo-header p {
+            color: #6c7a89;
+            font-size: 1.1rem;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1a4d8c;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #0f2b3d;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e7ef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #1a4d8c;
+        }
+
+        /* Grid Layout */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Mesh Devices */
+        .devices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .device-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-left: 4px solid #e0e7ef;
+            transition: all 0.3s ease;
+        }
+
+        .device-card.online {
+            border-left-color: #10b981;
+        }
+
+        .device-card.offline {
+            border-left-color: #6c7a89;
+        }
+
+        .device-icon {
+            font-size: 1.5rem;
+        }
+
+        .device-info {
+            flex: 1;
+        }
+
+        .device-name {
+            font-weight: 600;
+            color: #1a4d8c;
+        }
+
+        .device-status {
+            font-size: 0.8rem;
+            color: #6c7a89;
+        }
+
+        .device-packets {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e7ef;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #1a4d8c;
+        }
+
+        .balance {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #10b981;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #6c7a89;
+            font-size: 0.9rem;
+        }
+
+        .cache-indicator {
+            background: #f3f4f6;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+
+        .cache-size {
+            font-weight: 600;
+            color: #1a4d8c;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.warning {
+            border-left: 4px solid #f59e0b;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .devices-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo-section">
+            <div class="logo">Scan&Pay</div>
+            <div class="tagline">Instant payments, anywhere</div>
+        </div>
+        <div class="auth-buttons">
+            <button class="btn btn-secondary">Login</button>
+            <button class="btn btn-primary">Create Account</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="container">
+        <section class="hero">
+            <h1>INSTANT PAYOUTS.</h1>
+            <p>Accept payments easily</p>
+            <p>Collect payments without card readers... even without internet!</p>
+            <div class="trusted-by">
+                <span>Trusted by 8,000+ businesses</span>
+                <div class="company-logo">Canva</div>
+                <div class="company-logo">Deloitte</div>
+                <div class="company-logo">Shopify</div>
+                <div class="company-logo">NN/g</div>
+                <div class="company-logo">DATADOG</div>
+            </div>
+        </section>
+
+        <!-- Demo Section -->
+        <section class="demo-section">
+            <div class="demo-header">
+                <h2>UPI Offline Mesh — Live Demo</h2>
+                <p>Send money in a basement with zero internet connection</p>
+            </div>
+
+            <!-- Demo Flow Steps -->
+            <div class="demo-grid">
+                <!-- Card 1: Compose Payment -->
+                <div class="card">
+                    <h3>📝 Step 1: Compose Payment</h3>
+                    <form id="paymentForm">
+                        <div class="form-group">
+                            <label for="sender">Sender VPA</label>
+                            <select id="sender" class="form-control">
+                                <option value="alice@demo">alice@demo</option>
+                                <option value="bob@demo">bob@demo</option>
+                                <option value="carol@demo">carol@demo</option>
+                                <option value="dave@demo">dave@demo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="receiver">Receiver VPA</label>
+                            <select id="receiver" class="form-control">
+                                <option value="bob@demo">bob@demo</option>
+                                <option value="alice@demo">alice@demo</option>
+                                <option value="carol@demo">carol@demo</option>
+                                <option value="dave@demo">dave@demo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="amount">Amount (₹)</label>
+                            <input type="number" id="amount" class="form-control" min="1" max="10000" value="500">
+                        </div>
+                        <div class="form-group">
+                            <label for="pin">PIN</label>
+                            <input type="password" id="pin" class="form-control" placeholder="Enter PIN (1234 for demo)">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">📤 Inject into Mesh</button>
+                    </form>
+                </div>
+
+                <!-- Card 2: Gossip Round -->
+                <div class="card">
+                    <h3>🔄 Step 2: Gossip Round</h3>
+                    <p>Simulate packet hopping through the mesh network. Each round spreads packets from device to device.</p>
+                    <button id="gossipBtn" class="btn btn-success" style="width: 100%;">🔄 Run Gossip Round</button>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 12px;">
+                        <small><strong>Note:</strong> In a real mesh, packets hop via Bluetooth between nearby phones. Here we simulate the spreading effect.</small>
+                    </div>
+                </div>
+
+                <!-- Card 3: Bridge Upload -->
+                <div class="card">
+                    <h3>📡 Step 3: Bridge Node Upload</h3>
+                    <p>When a bridge device gets internet, it uploads all pending packets to the backend for settlement.</p>
+                    <button id="uploadBtn" class="btn btn-warning" style="width: 100%;">📡 Bridges Upload to Backend</button>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 12px;">
+                        <small><strong>Idempotency:</strong> Even if multiple bridges upload the same packet, only one settlement occurs.</small>
+                    </div>
+                </div>
+
+                <!-- Card 4: Reset -->
+                <div class="card">
+                    <h3>🔄 Reset Controls</h3>
+                    <p>Clear the mesh network and idempotency cache to start fresh.</p>
+                    <button id="resetBtn" class="btn btn-secondary" style="width: 100%;">🔄 Reset Mesh + Cache</button>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 12px;">
+                        <small><strong>What resets:</strong> Device packets, pending transactions, and idempotency cache. Account balances remain unchanged.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mesh Devices Status -->
+            <div class="card">
+                <h3>📱 Mesh Devices Status</h3>
+                <div class="devices-grid" id="devicesGrid">
+                    <!-- Devices will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Account Balances -->
+            <div class="card">
+                <h3>💰 Account Balances</h3>
+                <div class="table-container">
+                    <table id="balancesTable">
+                        <thead>
+                            <tr>
+                                <th>VPA</th>
+                                <th>Holder</th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Balances will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="cache-indicator">
+                Idempotency cache size: <span class="cache-size" id="cacheSize">0</span>
+            </div>
+            <p style="margin-top: 1rem;">UPI Offline Mesh Demo - Powered by Spring Boot</p>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE = 'http://localhost:8081/api';
+        
+        // State Management
+        let devices = {
+            "phone-bridge": { online: true, packets: 0, isBridge: true },
+            "phone-alice": { online: false, packets: 0 },
+            "phone-stranger1": { online: false, packets: 0 },
+            "phone-stranger2": { online: false, packets: 0 }
+        };
+
+        let balances = {
+            "alice@demo": 15000.00,
+            "bob@demo": 11000.00,
+            "carol@demo": 12500.00,
+            "dave@demo": 1500.00
+        };
+
+        let pendingPacket = null;
+        let idempotencyCache = new Set();
+        let transactionHistory = [];
+        let serverPublicKey = null;
+
+        // API Functions
+        async function fetchServerKey() {
+            try {
+                const response = await fetch(`${API_BASE}/server-key`);
+                if (response.ok) {
+                    serverPublicKey = await response.text();
+                    console.log('Server public key loaded');
+                }
+            } catch (error) {
+                console.error('Failed to fetch server key:', error);
+            }
+        }
+
+        async function fetchAccounts() {
+            try {
+                const response = await fetch(`${API_BASE}/accounts`);
+                if (response.ok) {
+                    const accounts = await response.json();
+                    // Update local balances with server data
+                    accounts.forEach(account => {
+                        balances[account.vpa] = account.balance;
+                    });
+                    renderBalances();
+                }
+            } catch (error) {
+                console.error('Failed to fetch accounts:', error);
+            }
+        }
+
+        async function fetchTransactions() {
+            try {
+                const response = await fetch(`${API_BASE}/transactions`);
+                if (response.ok) {
+                    const transactions = await response.json();
+                    transactionHistory = transactions;
+                }
+            } catch (error) {
+                console.error('Failed to fetch transactions:', error);
+            }
+        }
+
+        async function fetchMeshState() {
+            try {
+                const response = await fetch(`${API_BASE}/mesh/state`);
+                if (response.ok) {
+                    const meshState = await response.json();
+                    // Update local devices with server state
+                    meshState.forEach(device => {
+                        if (devices[device.deviceId]) {
+                            devices[device.deviceId].packets = device.packets;
+                            devices[device.deviceId].online = device.hasInternet;
+                        }
+                    });
+                    renderDevices();
+                }
+            } catch (error) {
+                console.error('Failed to fetch mesh state:', error);
+            }
+        }
+
+        async function sendPayment(paymentData) {
+            try {
+                const response = await fetch(`${API_BASE}/demo/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    return result;
+                } else {
+                    throw new Error('Payment failed');
+                }
+            } catch (error) {
+                console.error('Failed to send payment:', error);
+                throw error;
+            }
+        }
+
+        async function runGossipRound() {
+            try {
+                const response = await fetch(`${API_BASE}/mesh/gossip`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    await fetchMeshState(); // Update device states
+                    return result;
+                } else {
+                    throw new Error('Gossip round failed');
+                }
+            } catch (error) {
+                console.error('Failed to run gossip round:', error);
+                throw error;
+            }
+        }
+
+        async function flushBridges() {
+            try {
+                const response = await fetch(`${API_BASE}/mesh/flush`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    await fetchAccounts(); // Update balances
+                    await fetchTransactions(); // Update transaction history
+                    await fetchMeshState(); // Update device states
+                    return result;
+                } else {
+                    throw new Error('Bridge flush failed');
+                }
+            } catch (error) {
+                console.error('Failed to flush bridges:', error);
+                throw error;
+            }
+        }
+
+        async function resetMesh() {
+            try {
+                const response = await fetch(`${API_BASE}/mesh/reset`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    // Reset local state
+                    for (const deviceId in devices) {
+                        devices[deviceId].packets = 0;
+                        if (deviceId !== 'phone-bridge') {
+                            devices[deviceId].online = false;
+                        }
+                    }
+                    pendingPacket = null;
+                    idempotencyCache.clear();
+                    transactionHistory = [];
+                    
+                    // Fetch fresh data from server
+                    await fetchAccounts();
+                    await fetchMeshState();
+                    
+                    return result;
+                } else {
+                    throw new Error('Mesh reset failed');
+                }
+            } catch (error) {
+                console.error('Failed to reset mesh:', error);
+                throw error;
+            }
+        }
+
+        // UI Functions
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toast.className = `toast ${type} show`;
+            toastMessage.textContent = message;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function renderDevices() {
+            const devicesGrid = document.getElementById('devicesGrid');
+            devicesGrid.innerHTML = '';
+            
+            for (const [deviceId, device] of Object.entries(devices)) {
+                const deviceCard = document.createElement('div');
+                deviceCard.className = `device-card ${device.online ? 'online' : 'offline'}`;
+                
+                const statusIcon = device.online ? '🔵' : '⚫';
+                const statusText = device.online ? 'ONLINE 4G' : 'OFFLINE';
+                const packetsText = device.packets === 1 ? '1 packet' : `${device.packets} packets`;
+                
+                deviceCard.innerHTML = `
+                    <div class="device-icon">📱</div>
+                    <div class="device-info">
+                        <div class="device-name">${deviceId}</div>
+                        <div class="device-status">${statusIcon} ${statusText}</div>
+                    </div>
+                    <div class="device-packets">📦 ${packetsText}</div>
+                `;
+                
+                devicesGrid.appendChild(deviceCard);
+            }
+        }
+
+        function renderBalances() {
+            const tbody = document.querySelector('#balancesTable tbody');
+            tbody.innerHTML = '';
+            
+            for (const [vpa, balance] of Object.entries(balances)) {
+                const row = document.createElement('tr');
+                const holder = vpa.split('@')[0].charAt(0).toUpperCase() + vpa.split('@')[0].slice(1);
+                
+                row.innerHTML = `
+                    <td>${vpa}</td>
+                    <td>${holder}</td>
+                    <td class="balance">₹${balance.toFixed(2)}</td>
+                `;
+                
+                tbody.appendChild(row);
+            }
+        }
+
+        function renderCacheSize() {
+            document.getElementById('cacheSize').textContent = idempotencyCache.size;
+        }
+
+        function renderUI() {
+            renderDevices();
+            renderBalances();
+            renderCacheSize();
+        }
+
+        // Payment Form Handler
+        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const sender = document.getElementById('sender').value;
+            const receiver = document.getElementById('receiver').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const pin = document.getElementById('pin').value;
+            
+            // Validation
+            if (sender === receiver) {
+                showToast('Sender and receiver cannot be the same', 'error');
+                return;
+            }
+            
+            if (balances[sender] < amount) {
+                showToast('Insufficient balance', 'error');
+                return;
+            }
+            
+            if (pin !== '1234') {
+                showToast('Invalid PIN. Use 1234 for demo', 'error');
+                return;
+            }
+            
+            try {
+                // Send payment to backend
+                const paymentData = {
+                    sender: sender,
+                    receiver: receiver,
+                    amount: amount,
+                    pin: pin
+                };
+                
+                const result = await sendPayment(paymentData);
+                
+                // Update local state
+                pendingPacket = {
+                    from: sender,
+                    to: receiver,
+                    amount: amount,
+                    pin: pin,
+                    txnId: result.txnId || Date.now().toString(),
+                    timestamp: Date.now()
+                };
+                
+                // Fetch updated mesh state
+                await fetchMeshState();
+                
+                showToast(`Payment of ₹${amount} injected into mesh`, 'success');
+                renderUI();
+                
+            } catch (error) {
+                showToast('Failed to send payment: ' + error.message, 'error');
+            }
+        });
+
+        // Gossip Round Handler
+        document.getElementById('gossipBtn').addEventListener('click', async function() {
+            try {
+                const result = await runGossipRound();
+                showToast('Gossip round completed successfully', 'success');
+                renderUI();
+                
+                // Check if bridge has packets
+                if (devices['phone-bridge'].packets > 0) {
+                    showToast('Bridge node has packets ready for upload!', 'success');
+                }
+                
+            } catch (error) {
+                showToast('Failed to run gossip round: ' + error.message, 'error');
+            }
+        });
+
+        // Bridge Upload Handler
+        document.getElementById('uploadBtn').addEventListener('click', async function() {
+            if (devices['phone-bridge'].packets === 0) {
+                showToast('Bridge has no packets to upload', 'warning');
+                return;
+            }
+            
+            try {
+                const result = await flushBridges();
+                
+                // Update local cache size based on settled transactions
+                if (result.settled && result.settled > 0) {
+                    showToast(`${result.settled} transaction(s) settled successfully`, 'success');
+                } else if (result.dropped && result.dropped > 0) {
+                    showToast(`${result.dropped} duplicate transaction(s) dropped`, 'warning');
+                } else {
+                    showToast('Bridge upload completed', 'success');
+                }
+                
+                renderUI();
+                
+            } catch (error) {
+                showToast('Failed to upload bridges: ' + error.message, 'error');
+            }
+        });
+
+        // Reset Handler
+        document.getElementById('resetBtn').addEventListener('click', async function() {
+            try {
+                await resetMesh();
+                showToast('Mesh and cache reset successfully', 'success');
+                renderUI();
+                
+            } catch (error) {
+                showToast('Failed to reset mesh: ' + error.message, 'error');
+            }
+        });
+
+        // Initialize UI
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Load initial data from backend
+                await fetchServerKey();
+                await fetchAccounts();
+                await fetchMeshState();
+                
+                renderUI();
+                showToast('UPI Offline Mesh Demo loaded successfully', 'success');
+                
+            } catch (error) {
+                console.error('Failed to initialize demo:', error);
+                showToast('Failed to connect to backend. Make sure Spring Boot is running on port 8080', 'error');
+                // Fallback to local simulation
+                renderUI();
+            }
+        });
+    </script>
+</body>
+</html>

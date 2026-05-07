@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>UPI Offline Mesh — Live Demo | Gossip Protocol</title>
+  <!-- Google Fonts Inter + SF Mono for logs -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f1f5f9;
+      font-family: 'Inter', -apple-system, system-ui, monospace;
+      padding: 2rem 1.5rem;
+      color: #0a1c2f;
+    }
+
+    /* main container */
+    .mesh-container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* header zone */
+    .hero-section {
+      margin-bottom: 2rem;
+    }
+    .hero-section h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #0F2F44, #1C5D7A);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+    }
+    .hero-section p {
+      color: #3a5a78;
+      margin-top: 0.5rem;
+      font-weight: 450;
+      border-left: 3px solid #2c9b77;
+      padding-left: 1rem;
+    }
+
+    /* demo flow bar (buttons row) */
+    .flow-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 1.5rem 0 2rem 0;
+      background: white;
+      padding: 1rem 1.5rem;
+      border-radius: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.03);
+      align-items: center;
+      border: 1px solid #e9edf2;
+    }
+    .btn {
+      background: #f0f4f9;
+      border: none;
+      padding: 0.6rem 1.3rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #1f4a6e;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.02);
+    }
+    .btn-primary {
+      background: #1e4663;
+      color: white;
+      box-shadow: 0 2px 6px rgba(28, 93, 122, 0.15);
+    }
+    .btn-primary:hover {
+      background: #0f3550;
+      transform: translateY(-1px);
+    }
+    .btn-warning {
+      background: #fff1e0;
+      color: #b45f1b;
+    }
+    .btn-warning:hover {
+      background: #ffe2c4;
+    }
+    .btn-outline {
+      border: 1px solid #cbdde9;
+      background: white;
+    }
+    .btn-outline:hover {
+      background: #f8fafc;
+    }
+
+    /* 3 column layout: Mesh Devices | Balances + Ledger? but original structure: Devices + balances table + Transaction Ledger + Log */
+    .grid-structure {
+      display: grid;
+      grid-template-columns: 1fr 0.9fr 1.2fr;
+      gap: 1.5rem;
+      margin-bottom: 1.8rem;
+    }
+
+    /* cards style */
+    .card {
+      background: white;
+      border-radius: 28px;
+      box-shadow: 0 12px 28px -8px rgba(0,0,0,0.08);
+      padding: 1.3rem 1.2rem;
+      border: 1px solid #eef2f8;
+      transition: box-shadow 0.2s;
+      height: fit-content;
+    }
+    .card-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-left: 4px solid #1e6f5c;
+      padding-left: 12px;
+      color: #1e3a4d;
+    }
+
+    /* mesh device list */
+    .device-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .device-item {
+      background: #fafcff;
+      border-radius: 20px;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e7edf4;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: 0.1s;
+    }
+    .device-name {
+      font-weight: 700;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    .device-status {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 100px;
+      background: #e2e8f0;
+      color: #2c3e50;
+    }
+    .status-online {
+      background: #dff3ea;
+      color: #1b6b4c;
+    }
+    .status-offline {
+      background: #ffe7e5;
+      color: #b13e3e;
+    }
+    .packet-badge {
+      background: #eef2fa;
+      border-radius: 40px;
+      padding: 0.2rem 0.8rem;
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    /* table common */
+    .balances-table, .ledger-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    .balances-table th, .ledger-table th {
+      text-align: left;
+      padding: 0.5rem 0.2rem;
+      font-weight: 600;
+      color: #4a627a;
+      border-bottom: 1px solid #e2eaf1;
+    }
+    .balances-table td, .ledger-table td {
+      padding: 0.5rem 0.2rem;
+      border-bottom: 1px solid #f0f4fa;
+      font-weight: 500;
+      font-family: monospace;
+    }
+    .mono-number {
+      font-family: monospace;
+      font-weight: 600;
+    }
+    .cache-indicator {
+      background: #eff3f9;
+      display: inline-block;
+      padding: 0.2rem 0.8rem;
+      border-radius: 32px;
+      margin-top: 0.8rem;
+      font-size: 0.7rem;
+    }
+    .log-area {
+      background: #0d1c2a;
+      color: #c9e1f0;
+      border-radius: 24px;
+      padding: 1rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.75rem;
+      height: 260px;
+      overflow-y: auto;
+      margin-top: 1rem;
+    }
+    .log-entry {
+      padding: 0.3rem 0;
+      border-bottom: 1px solid #2a4359;
+      font-size: 0.7rem;
+      letter-spacing: -0.2px;
+    }
+    .compose-panel {
+      margin-bottom: 1.5rem;
+      background: #f9fbfe;
+      border-radius: 1.5rem;
+      padding: 1rem;
+    }
+    .inline-input {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      align-items: center;
+      margin: 0.8rem 0;
+    }
+    .inline-input input, select {
+      background: white;
+      border: 1px solid #dce5ef;
+      padding: 0.5rem 0.8rem;
+      border-radius: 60px;
+      font-size: 0.8rem;
+      font-family: monospace;
+    }
+    small {
+      color: #667e9e;
+    }
+    hr {
+      margin: 0.7rem 0;
+      border-color: #edf2f8;
+    }
+
+    @media (max-width: 1000px) {
+      .grid-structure {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      body {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="mesh-container">
+  <div class="hero-section">
+    <h1>📡 UPI Offline Mesh — Live Demo</h1>
+    <p>Send money in a basement with zero internet. Encrypted packets gossip from phone to phone until one with 4G reaches the backend.</p>
+  </div>
+
+  <!-- Demo flow: Compose, Gossip, Bridge Upload, Reset -->
+  <div class="flow-actions">
+    <span style="font-weight:600;">⚡ Demo Flow</span>
+    <button id="injectBtn" class="btn btn-primary">📨 1. Inject into Mesh</button>
+    <button id="gossipBtn" class="btn">🔄 2. Run Gossip Round</button>
+    <button id="bridgeUploadBtn" class="btn btn-primary">🌉 3. Bridges Upload to Backend</button>
+    <button id="resetBtn" class="btn btn-warning">🗑️ Reset Mesh + Cache</button>
+  </div>
+
+  <!-- Compose payment inline (Alice → bob) -->
+  <div class="compose-panel">
+    <div style="font-weight:600; margin-bottom:6px;">✍️ Compose payment (simulates sender phone)</div>
+    <div class="inline-input">
+      <span>From:</span>
+      <input type="text" id="senderVPA" value="alice@demo" style="width:130px;">
+      <span>→ To:</span>
+      <input type="text" id="receiverVPA" value="bob@demo" style="width:130px;">
+      <span>Amount:</span>
+      <input type="number" id="amountVal" value="500" style="width:100px;">
+      <span>PIN:</span>
+      <input type="password" id="pinVal" value="1234" style="width:70px;" maxlength="4">
+      <small>(demo PIN: 1234)</small>
+    </div>
+  </div>
+
+  <!-- Original structure: Mesh Devices | Account Balances | Transaction Ledger + Activity Log (but we integrate Log as extra) -->
+  <div class="grid-structure">
+    <!-- COL 1: Mesh Devices (original list) -->
+    <div class="card">
+      <div class="card-title">📱 Mesh Devices</div>
+      <div class="device-list" id="meshDevicesList">
+        <!-- dynamically injected from JS -->
+      </div>
+      <div class="cache-indicator" id="idempotencyCacheDisplay">Idempotency cache size: 0</div>
+    </div>
+
+    <!-- COL 2: Account Balances table + Ledger table snippet? But original project includes ledger and log - we split carefully -->
+    <div class="card">
+      <div class="card-title">💰 Account Balances</div>
+      <table class="balances-table" id="balancesTable">
+        <thead>
+          <tr><th>VPA</th><th>HOLDER</th><th>BALANCE (₹)</th></tr>
+        </thead>
+        <tbody id="balancesBody">
+        </tbody>
+      </table>
+      <!-- small spacer -->
+    </div>
+
+    <!-- COL 3: Transaction Ledger + Activity Log (preserve original heading) -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="card">
+        <div class="card-title">📋 Transaction Ledger</div>
+        <table class="ledger-table" id="ledgerTable">
+          <thead>
+            <tr><th>ID</th><th>FROM</th><th>TO</th><th>AMOUNT</th><th>STATUS</th><th>BRIDGE</th><th>HOPS</th><th>SETTLED</th></tr>
+          </thead>
+          <tbody id="ledgerBody">
+            <tr><td colspan="8" style="text-align:center;">— no transactions yet —</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">📜 Activity Log</div>
+        <div class="log-area" id="activityLog">
+          <div class="log-entry">🟢 System ready. Mesh initialized.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- ORIGINAL PROJECT STRUCTURE RETAINED ----------
+  // Mesh devices: phone-bridge (4G always online), phone-alice, phone-stranger1, phone-stranger2, phone-stranger3 offline
+  const DEVICES = {
+    "phone-bridge":   { online: true,  packets: 0, isBridge: true },
+    "phone-alice":    { online: false, packets: 0, isBridge: false },
+    "phone-stranger1":{ online: false, packets: 0, isBridge: false },
+    "phone-stranger2":{ online: false, packets: 0, isBridge: false },
+    "phone-stranger3":{ online: false, packets: 0, isBridge: false }
+  };
+
+  // Account balances (mirroring original demo)
+  let balances = {
+    "alice@demo": 15000.00,
+    "bob@demo":   11000.00,
+    "carol@demo": 12500.00,
+    "dave@demo":  1500.00
+  };
+
+  // Pending transaction object (packet being gossiped)
+  let pendingPacket = null;          // { txnId, from, to, amount, hopCount, settled: false }
+
+  // Idempotency cache (Set of txnId)
+  let idempotencyCache = new Set();
+
+  // Transaction ledger (array of objects)
+  let transactionLedger = [];   // each entry: id, from, to, amount, status, bridgeFinal, hops, settled
+
+  // helper to generate unique ID
+  function generateTxnId() {
+    return 'TXN-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+  }
+
+  // add activity log
+  function addLog(message, type = "info") {
+    const logDiv = document.getElementById("activityLog");
+    const time = new Date().toLocaleTimeString();
+    const entry = document.createElement("div");
+    entry.className = "log-entry";
+    let icon = "📌";
+    if (type === "gossip") icon = "🔄";
+    if (type === "bridge") icon = "🌉";
+    if (type === "error") icon = "⚠️";
+    if (type === "success") icon = "✅";
+    entry.innerHTML = `[${time}] ${icon} ${message}`;
+    logDiv.appendChild(entry);
+    entry.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // keep last 50 logs
+    while (logDiv.children.length > 80) logDiv.removeChild(logDiv.firstChild);
+  }
+
+  // update UI: mesh devices, balances, cache size, ledger table
+  function renderUI() {
+    // 1. mesh devices list
+    const container = document.getElementById("meshDevicesList");
+    container.innerHTML = "";
+    for (const [devName, dev] of Object.entries(DEVICES)) {
+      const div = document.createElement("div");
+      div.className = "device-item";
+      const statusClass = dev.online ? "status-online" : "status-offline";
+      const statusText = dev.online ? (dev.isBridge ? "4G ONLINE" : "ONLINE") : "OFFLINE";
+      div.innerHTML = `
+        <div><span class="device-name">📱 ${devName}</span></div>
+        <div><span class="device-status ${statusClass}">${statusText}</span> <span class="packet-badge">📦 ${dev.packets} packet(s)</span></div>
+      `;
+      container.appendChild(div);
+    }
+    // 2. balances table
+    const balancesBody = document.getElementById("balancesBody");
+    balancesBody.innerHTML = "";
+    const holders = { "alice@demo":"Alice", "bob@demo":"Bob", "carol@demo":"Carol", "dave@demo":"Dave" };
+    for (const [vpa, balance] of Object.entries(balances)) {
+      const row = `<tr><td>${vpa}</td><td>${holders[vpa] || vpa.split('@')[0]}</td><td class="mono-number">₹${balance.toFixed(2)}</td></tr>`;
+      balancesBody.insertAdjacentHTML("beforeend", row);
+    }
+    // 3. idempotency cache size
+    document.getElementById("idempotencyCacheDisplay").innerHTML = `🔄 Idempotency cache size: ${idempotencyCache.size}`;
+
+    // 4. transaction ledger table
+    const ledgerBody = document.getElementById("ledgerBody");
+    if (transactionLedger.length === 0) {
+      ledgerBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">— no transactions yet —</td></tr>';
+    } else {
+      ledgerBody.innerHTML = "";
+      transactionLedger.slice().reverse().forEach(tx => {
+        const row = `<tr>
+          <td>${tx.id}</td><td>${tx.from}</td><td>${tx.to}</td><td>₹${tx.amount}</td>
+          <td>${tx.status}</td><td>${tx.bridgeFinal ? '✅' : '⏳'}</td>
+          <td>${tx.hops}</td><td>${tx.settled ? '✓' : 'pending'}</td>
+        </tr>`;
+        ledgerBody.insertAdjacentHTML("beforeend", row);
+      });
+    }
+  }
+
+  // Helper to add transaction to ledger
+  function addTransactionRecord(txnId, from, to, amount, status, hops, settled = false, bridgeFinal = false) {
+    transactionLedger.unshift({
+      id: txnId,
+      from: from,
+      to: to,
+      amount: amount,
+      status: status,
+      bridgeFinal: bridgeFinal,
+      hops: hops,
+      settled: settled
+    });
+    renderUI();
+  }
+
+  // INJECT INTO MESH (simulate sender phone)
+  function injectIntoMesh() {
+    const sender = document.getElementById("senderVPA").value.trim();
+    const receiver = document.getElementById("receiverVPA").value.trim();
+    const amount = parseFloat(document.getElementById("amountVal").value);
+    const pin = document.getElementById("pinVal").value;
+
+    if (pin !== "1234") {
+      addLog("❌ Invalid PIN. Demo PIN is 1234", "error");
+      return;
+    }
+    if (!balances.hasOwnProperty(sender)) {
+      addLog(`❌ Sender ${sender} not found in balances`, "error");
+      return;
+    }
+    if (!balances.hasOwnProperty(receiver)) {
+      addLog(`❌ Receiver ${receiver} not found`, "error");
+      return;
+    }
+    if (amount <= 0 || isNaN(amount)) {
+      addLog("❌ Invalid amount", "error");
+      return;
+    }
+    if (balances[sender] < amount) {
+      addLog(`❌ Insufficient balance for ${sender}`, "error");
+      return;
+    }
+    if (sender === receiver) {
+      addLog("❌ Sender and receiver cannot be same", "error");
+      return;
+    }
+
+    // Generate unique packet
+    const txnId = generateTxnId();
+    pendingPacket = {
+      txnId: txnId,
+      from: sender,
+      to: receiver,
+      amount: amount,
+      hopCount: 0,
+      settled: false
+    };
+
+    // Inject: add packet to phone-alice (offline device)
+    DEVICES["phone-alice"].packets += 1;
+    addLog(`📨 Packet created: ${txnId} | ${sender} → ${receiver} ₹${amount} (injected into phone-alice mesh)`, "success");
+    renderUI();
+  }
+
+  // GOSSIP ROUND: packets hop device-to-device (offline mesh)
+  function gossipRound() {
+    // find all devices that have packets and are NOT bridge (or if bridge has packets it can still gossip but we only move among offline)
+    let devicesWithPackets = Object.keys(DEVICES).filter(d => DEVICES[d].packets > 0 && !DEVICES[d].isBridge);
+    if (devicesWithPackets.length === 0) {
+      // if no packets in non-bridge, but bridge may have, but gossip happens offline, so we simulate no movement
+      if(Object.keys(DEVICES).some(d => DEVICES[d].packets > 0 && DEVICES[d].isBridge)) {
+        addLog("⚡ No offline devices carry packets. Bridge already holds packets — run bridge upload.", "gossip");
+      } else {
+        addLog("🌀 No packets in offline mesh. Inject a payment first.", "gossip");
+      }
+      renderUI();
+      return;
+    }
+
+    // pick first device with packet as source
+    let source = devicesWithPackets[0];
+    let possibleTargets = Object.keys(DEVICES).filter(d => d !== source && !DEVICES[d].isBridge); // offline strangers only
+    if (possibleTargets.length === 0) {
+      // if no offline targets except bridge? but isBridge excluded, then try to gossip to bridge (optional)
+      if (DEVICES["phone-bridge"] && !DEVICES["phone-bridge"].packets) {
+        possibleTargets = ["phone-bridge"];
+      } else {
+        addLog("⚠️ No other offline devices to gossip.", "gossip");
+        return;
+      }
+    }
+    let target = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
+    
+    // Move ONE packet from source to target
+    if (DEVICES[source].packets > 0) {
+      DEVICES[source].packets -= 1;
+      DEVICES[target].packets += 1;
+      if (pendingPacket && !pendingPacket.settled) {
+        pendingPacket.hopCount += 1;
+      }
+      addLog(`🔄 Packet gossiped: ${source} → ${target} | hop count ${pendingPacket?.hopCount || 0}`, "gossip");
+    } else {
+      addLog(`⚠️ ${source} had no packets after check`, "gossip");
+    }
+    renderUI();
+  }
+
+  // BRIDGE NODE UPLOAD (bridge walks outside, hits 4G)
+  async function bridgeUpload() {
+    if (!DEVICES["phone-bridge"].packets > 0 && (!pendingPacket || pendingPacket.settled)) {
+      addLog("🌉 Bridge has no packets to upload. Run gossip or inject payment.", "bridge");
+      return;
+    }
+    if (!pendingPacket || pendingPacket.settled) {
+      addLog("⚠️ No pending active packet matching bridge content.", "bridge");
+      return;
+    }
+
+    const txnId = pendingPacket.txnId;
+    // Idempotency check
+    if (idempotencyCache.has(txnId)) {
+      addLog(`♻️ Idempotency guard: transaction ${txnId} already processed. Duplicate ignored.`, "bridge");
+      // still clear bridge packets to simulate no double upload
+      DEVICES["phone-bridge"].packets = 0;
+      renderUI();
+      return;
+    }
+
+    const { from, to, amount, hopCount } = pendingPacket;
+    // final settlement: perform balance transfer
+    if (balances[from] >= amount) {
+      balances[from] -= amount;
+      balances[to] += amount;
+      addLog(`💸 Settlement SUCCESS: ${from} → ${to} ₹${amount} (finalized via bridge)`, "success");
+      // mark as settled, add to idempotency
+      idempotencyCache.add(txnId);
+      pendingPacket.settled = true;
+
+      // Add to transaction ledger with full details
+      addTransactionRecord(txnId, from, to, amount, "SETTLED", hopCount, true, true);
+    } else {
+      addLog(`❌ Bridge settlement failed: insufficient balance on ${from}`, "error");
+      addTransactionRecord(txnId, from, to, amount, "FAILED (balance)", hopCount, false, false);
+    }
+
+    // Clear packets from bridge
+    DEVICES["phone-bridge"].packets = 0;
+    // clear pending packet so new payment can be made
+    pendingPacket = null;
+    renderUI();
+  }
+
+  // RESET MESH + CACHE (but keep balances? full reset to original balances and clear mesh packets & cache)
+  function resetMeshAndCache() {
+    // reset devices packets
+    for (let dev in DEVICES) {
+      DEVICES[dev].packets = 0;
+      if (dev === "phone-bridge") DEVICES[dev].online = true;
+      else DEVICES[dev].online = false;
+    }
+    // reset balances to original snapshot
+    balances = {
+      "alice@demo": 15000.00,
+      "bob@demo":   11000.00,
+      "carol@demo": 12500.00,
+      "dave@demo":  1500.00
+    };
+    // clear idempotency cache
+    idempotencyCache.clear();
+    // clear pending packet
+    pendingPacket = null;
+    // clear transaction ledger (optional but full reset to match structure)
+    transactionLedger = [];
+    // add log reset
+    addLog("🔄 Full reset performed: mesh packets cleared, idempotency cache emptied, balances restored.", "success");
+    renderUI();
+  }
+
+  // event bindings
+  document.getElementById("injectBtn").addEventListener("click", injectIntoMesh);
+  document.getElementById("gossipBtn").addEventListener("click", gossipRound);
+  document.getElementById("bridgeUploadBtn").addEventListener("click", bridgeUpload);
+  document.getElementById("resetBtn").addEventListener("click", resetMeshAndCache);
+
+  // initial render
+  renderUI();
+  addLog("🏁 Mesh initialized | Devices: bridge (4G), Alice, stranger1-3 offline. Compose, gossip & bridge ready.");
+</script>
+</body>
+</html>
