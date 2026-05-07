@@ -1,129 +1,745 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UPI Offline Mesh — Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            margin: 0; padding: 24px; background: #0d1117; color: #e6edf3;
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f0f4fa;
+            --sidebar-bg: #0b1120;
+            --sidebar-width: 240px;
+            --card-bg: #ffffff;
+            --card-border: #e4eaf4;
+            --primary: #2563eb;
+            --primary-light: #dbeafe;
+            --accent: #10b981;
+            --accent-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --text-sidebar: #94a3b8;
+            --radius: 14px;
+            --shadow: 0 1px 4px rgba(15,23,42,0.07), 0 4px 20px rgba(15,23,42,0.05);
         }
-        h1 { margin-top: 0; color: #f0f6fc; }
-        h2 { color: #58a6ff; border-bottom: 1px solid #30363d; padding-bottom: 4px; margin-top: 32px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .grid { display: grid; gap: 16px; }
-        .grid-2 { grid-template-columns: 1fr 1fr; }
-        .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
-        .device { border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; background: #0d1117; }
-        .device.bridge { border-color: #2ea043; background: #052e16; }
-        .device.offline { opacity: 0.85; }
-        .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; margin-left: 8px; }
-        .badge-online { background: #2ea043; color: white; }
-        .badge-offline { background: #6e7681; color: white; }
-        .packet-id { font-family: 'Consolas', 'Monaco', monospace; font-size: 11px; background: #21262d; padding: 2px 6px; border-radius: 3px; margin: 2px; display: inline-block; }
-        button { background: #238636; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; margin: 4px; }
-        button:hover { background: #2ea043; }
-        button.danger { background: #da3633; }
-        button.danger:hover { background: #f85149; }
-        button.secondary { background: #1f6feb; }
-        button.secondary:hover { background: #388bfd; }
-        input, select { background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 4px; padding: 6px 10px; font-size: 14px; margin: 4px; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #30363d; }
-        th { color: #8b949e; font-weight: 600; font-size: 12px; text-transform: uppercase; }
-        .status-SETTLED { color: #56d364; font-weight: 600; }
-        .status-REJECTED { color: #f85149; font-weight: 600; }
-        .status-DUPLICATE_DROPPED { color: #d29922; font-weight: 600; }
-        .status-INVALID { color: #f85149; font-weight: 600; }
-        #log { background: #010409; color: #7ee787; padding: 12px; border-radius: 6px; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; border: 1px solid #30363d; }
-        .controls { background: #161b22; padding: 16px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 16px; }
-        .step-num { display: inline-block; background: #58a6ff; color: white; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 24px; font-weight: 600; margin-right: 8px; }
-        .balance { font-family: 'Consolas', monospace; color: #56d364; font-weight: 600; }
-        .small { font-size: 12px; color: #8b949e; }
-        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ─── SIDEBAR ─────────────────────────────── */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            min-height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo span {
+            font-size: 15px;
+            font-weight: 700;
+            color: #f8fafc;
+            line-height: 1.2;
+        }
+        .sidebar-logo small {
+            display: block;
+            font-size: 10px;
+            color: var(--text-sidebar);
+            font-weight: 400;
+        }
+
+        .sidebar-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #475569;
+            padding: 20px 20px 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            color: var(--text-sidebar);
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 0;
+            transition: all 0.15s;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .nav-item:hover { color: #f1f5f9; background: rgba(255,255,255,0.04); }
+
+        .nav-item.active {
+            color: #fff;
+            background: rgba(37,99,235,0.18);
+        }
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 10%; height: 80%;
+            width: 3px;
+            background: var(--primary);
+            border-radius: 0 3px 3px 0;
+        }
+
+        .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            font-size: 12px;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        /* ─── MAIN LAYOUT ─────────────────────────── */
+        .main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ─── TOPBAR ──────────────────────────────── */
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid var(--card-border);
+            padding: 0 28px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-left h2 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .topbar-left p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .topbar-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--bg);
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+        }
+        .status-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ─── CONTENT ─────────────────────────────── */
+        .content {
+            padding: 24px 28px;
+            flex: 1;
+        }
+
+        /* ─── STAT CARDS ROW ─────────────────────── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .stat-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.blue  { background: var(--primary-light); }
+        .stat-icon.green { background: var(--accent-light); }
+        .stat-icon.amber { background: var(--warning-light); }
+        .stat-icon.red   { background: var(--danger-light); }
+
+        .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1.1; margin-top: 2px; }
+
+        /* ─── GRID ────────────────────────────────── */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+
+        /* ─── CARD ────────────────────────────────── */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body { padding: 14px 20px 18px; }
+
+        /* ─── CONTROLS / DEMO SECTION ─────────────── */
+        .demo-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+
+        .demo-header {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #0b1120 0%, #1e3a5f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .demo-header h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #f8fafc;
+            margin: 0;
+        }
+
+        .demo-body { padding: 18px 20px; }
+
+        .step-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .step-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .step-content { flex: 1; }
+        .step-label { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+        .step-sub { font-size: 11.5px; color: var(--text-muted); margin-bottom: 8px; }
+        .step-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+        /* ─── INPUTS ──────────────────────────────── */
+        input, select {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 7px 11px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        input:focus, select:focus { border-color: var(--primary); }
+        select { cursor: pointer; }
+
+        /* ─── BUTTONS ─────────────────────────────── */
+        button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 12.5px;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        button.primary   { background: var(--primary); color: #fff; }
+        button.primary:hover   { background: #1d4ed8; }
+        button.secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--card-border); }
+        button.secondary:hover { background: #e2e8f0; }
+        button.accent    { background: var(--accent); color: #fff; }
+        button.accent:hover    { background: #059669; }
+        button.danger    { background: var(--danger); color: #fff; }
+        button.danger:hover    { background: #dc2626; }
+
+        /* ─── DEVICES ─────────────────────────────── */
+        .device-list { display: flex; flex-direction: column; gap: 8px; }
+
+        .device {
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            background: var(--bg);
+            transition: border-color 0.15s;
+        }
+        .device.bridge {
+            border-color: #6ee7b7;
+            background: #f0fdf4;
+        }
+        .device-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .device-name { font-size: 13px; font-weight: 700; color: var(--text); }
+        .device-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 20px;
+        }
+        .badge-online  { background: var(--accent-light); color: #065f46; }
+        .badge-offline { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+        .packet-ids { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .packet-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            background: #e2e8f0;
+            color: #475569;
+            padding: 2px 7px;
+            border-radius: 4px;
+        }
+        .device.bridge .packet-id { background: #d1fae5; color: #065f46; }
+
+        /* ─── ACCOUNTS TABLE ─────────────────────── */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th {
+            text-align: left;
+            padding: 9px 12px;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--card-border);
+            background: #f8fafc;
+        }
+        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8fafc; }
+
+        .balance-cell {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 13.5px;
+        }
+
+        .status-SETTLED        { color: var(--accent); font-weight: 700; font-size: 11.5px; }
+        .status-REJECTED       { color: var(--danger); font-weight: 700; font-size: 11.5px; }
+        .status-DUPLICATE_DROPPED { color: var(--warning); font-weight: 700; font-size: 11.5px; }
+        .status-INVALID        { color: var(--danger); font-weight: 700; font-size: 11.5px; }
+
+        .status-chip {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10.5px;
+            font-weight: 700;
+        }
+        .chip-SETTLED { background: var(--accent-light); color: #065f46; }
+        .chip-REJECTED { background: var(--danger-light); color: #991b1b; }
+        .chip-DUPLICATE_DROPPED { background: var(--warning-light); color: #92400e; }
+        .chip-INVALID { background: var(--danger-light); color: #991b1b; }
+
+        /* ─── LOG ─────────────────────────────────── */
+        #log {
+            background: #0f172a;
+            color: #4ade80;
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border: 1px solid #1e293b;
+            line-height: 1.7;
+        }
+        #log::-webkit-scrollbar { width: 4px; }
+        #log::-webkit-scrollbar-track { background: transparent; }
+        #log::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+        .cache-info {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .small { font-size: 11.5px; color: var(--text-muted); }
+
+        /* ─── SECTION TITLE ───────────────────────── */
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--card-border);
+            margin: 0 0 14px;
+        }
+
+        /* ─── RESPONSIVE ──────────────────────────── */
+        @media (max-width: 1100px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 800px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 500px) {
+            .stats-row { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>&#x1F4E1; UPI Offline Mesh &#x2014; Live Demo</h1>
-    <p class="small">
-        Send money in a basement with zero internet. Encrypted packets gossip from phone to phone
-        until one with 4G reaches the backend.
-    </p>
 
-    <div class="controls">
-        <h3 style="margin-top:0">&#x1F3AC; Demo Flow</h3>
-
-        <div>
-            <span class="step-num">1</span><strong>Compose payment</strong> (simulates sender phone)
-            <br>
-            <select id="senderVpa">
-                <option>alice@demo</option>
-                <option>bob@demo</option>
-                <option>carol@demo</option>
-            </select>
-            &#x2192;
-            <select id="receiverVpa">
-                <option>bob@demo</option>
-                <option>carol@demo</option>
-                <option>alice@demo</option>
-                <option>dave@demo</option>
-            </select>
-            &#x20B9;<input type="number" id="amount" value="500" style="width: 100px">
-            PIN <input type="text" id="pin" value="1234" style="width: 80px" maxlength="4">
-            <button onclick="sendPacket()">&#x1F4E4; Inject into Mesh</button>
-        </div>
-
-        <div style="margin-top: 16px">
-            <span class="step-num">2</span><strong>Gossip</strong> &#x2014; packets hop device-to-device
-            <button class="secondary" onclick="gossip()">&#x1F504; Run Gossip Round</button>
-        </div>
-
-        <div style="margin-top: 16px">
-            <span class="step-num">3</span><strong>Bridge node walks outside, hits 4G</strong>
-            <button class="secondary" onclick="flushBridges()">&#x1F4E1; Bridges Upload to Backend</button>
-            <span class="small">(parallel &#x2014; exercises idempotency)</span>
-        </div>
-
-        <div style="margin-top: 16px">
-            <button class="danger" onclick="resetMesh()">&#x1F5D1; Reset Mesh + Cache</button>
-        </div>
+<!-- ═══════════════════════════ SIDEBAR ═════════════════════════════ -->
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">📡</div>
+        <span>UPI Mesh<small>Offline Payment Network</small></span>
     </div>
 
-    <div class="grid grid-2">
+    <div class="sidebar-section-label">Main Menu</div>
+    <a class="nav-item active" href="#">
+        <span class="nav-icon">🏠</span> Dashboard
+    </a>
+    <a class="nav-item" href="#">
+        <span class="nav-icon">📱</span> Devices
+    </a>
+    <a class="nav-item" href="#">
+        <span class="nav-icon">💸</span> Transactions
+    </a>
+    <a class="nav-item" href="#">
+        <span class="nav-icon">🏦</span> Accounts
+    </a>
+    <a class="nav-item" href="#">
+        <span class="nav-icon">🔐</span> Security
+    </a>
+
+    <div class="sidebar-section-label">Other</div>
+    <a class="nav-item" href="#">
+        <span class="nav-icon">⚙️</span> Settings
+    </a>
+    <a class="nav-item" href="#">
+        <span class="nav-icon">❓</span> Help Center
+    </a>
+
+    <div class="sidebar-footer">
+        Mesh Protocol v2.1<br>
+        End-to-end encrypted gossip
+    </div>
+</aside>
+
+<!-- ═══════════════════════════ MAIN ════════════════════════════════ -->
+<div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <h2>Welcome back — Mesh Dashboard</h2>
+            <p>Send money offline, even in a basement with zero internet.</p>
+        </div>
+        <div class="topbar-right">
+            <div class="status-pill">
+                <div class="status-dot"></div>
+                Backend Live
+            </div>
+            <span class="topbar-badge">🌐 Auto-refresh: 5s</span>
+        </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- STAT CARDS -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon blue">📡</div>
+                <div>
+                    <div class="stat-label">Mesh Devices</div>
+                    <div class="stat-value" id="stat-devices">—</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">📦</div>
+                <div>
+                    <div class="stat-label">Packets in Flight</div>
+                    <div class="stat-value" id="stat-packets">—</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon amber">✅</div>
+                <div>
+                    <div class="stat-label">Settled Txns</div>
+                    <div class="stat-value" id="stat-settled">—</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon blue">🔒</div>
+                <div>
+                    <div class="stat-label">Idempotency Cache</div>
+                    <div class="stat-value" id="stat-cache">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DEMO FLOW CONTROLS -->
+        <div class="demo-section">
+            <div class="demo-header">
+                <h3>🎬 Demo Flow — Simulate Offline Payment</h3>
+                <button class="danger" onclick="resetMesh()">🗑 Reset Mesh + Cache</button>
+            </div>
+            <div class="demo-body">
+
+                <div class="step-row">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <div class="step-label">Compose Payment <span class="small">(simulates sender phone)</span></div>
+                        <div class="step-controls">
+                            <select id="senderVpa">
+                                <option>alice@demo</option>
+                                <option>bob@demo</option>
+                                <option>carol@demo</option>
+                            </select>
+                            <span style="color:var(--text-muted);font-size:13px;">→</span>
+                            <select id="receiverVpa">
+                                <option>bob@demo</option>
+                                <option>carol@demo</option>
+                                <option>alice@demo</option>
+                                <option>dave@demo</option>
+                            </select>
+                            <span style="color:var(--text-muted);font-size:13px;">₹</span>
+                            <input type="number" id="amount" value="500" style="width: 90px">
+                            <span style="color:var(--text-muted);font-size:13px;">PIN</span>
+                            <input type="text" id="pin" value="1234" style="width: 72px" maxlength="4">
+                            <button class="primary" onclick="sendPacket()">📤 Inject into Mesh</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-row">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <div class="step-label">Gossip — packets hop device-to-device</div>
+                        <div class="step-controls">
+                            <button class="secondary" onclick="gossip()">🔄 Run Gossip Round</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-row">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <div class="step-label">Bridge node walks outside, hits 4G</div>
+                        <div class="step-sub">Parallel uploads — exercises idempotency</div>
+                        <div class="step-controls">
+                            <button class="accent" onclick="flushBridges()">📡 Bridges Upload to Backend</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- DEVICES + ACCOUNTS -->
+        <div class="grid-2" style="margin-bottom: 18px;">
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📱 Mesh Devices</div>
+                </div>
+                <div class="card-body">
+                    <div class="device-list" id="devices">
+                        <div class="small" style="text-align:center;padding:20px 0;color:var(--text-muted);">Loading devices…</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🏦 Account Balances</div>
+                </div>
+                <div class="card-body" style="padding-bottom:10px;">
+                    <table id="accounts-table">
+                        <thead>
+                            <tr><th>VPA</th><th>Holder</th><th>Balance</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="3" class="small" style="text-align:center;padding:16px 0;">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="cache-info">
+                        <span>🔒</span>
+                        <span id="cacheInfo">Loading cache info…</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TRANSACTION LEDGER -->
+        <div class="card" style="margin-bottom: 18px;">
+            <div class="card-header">
+                <div class="card-title">📜 Transaction Ledger</div>
+            </div>
+            <div class="card-body" style="padding: 0 0 0;">
+                <table id="tx-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Bridge</th>
+                            <th>Hops</th>
+                            <th>Settled</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="8" class="small" style="text-align:center;padding:20px 0;">No settlements yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ACTIVITY LOG -->
         <div class="card">
-            <h2>&#x1F4F1; Mesh Devices</h2>
-            <div id="devices"></div>
+            <div class="card-header" style="margin-bottom: 12px;">
+                <div class="card-title">🪵 Activity Log</div>
+                <span class="small">Latest events</span>
+            </div>
+            <div class="card-body" style="padding-top: 0;">
+                <div id="log">Initialising mesh…</div>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>&#x1F3E6; Account Balances</h2>
-            <table id="accounts-table">
-                <thead><tr><th>VPA</th><th>Holder</th><th>Balance</th></tr></thead>
-                <tbody></tbody>
-            </table>
-            <p class="small" id="cacheInfo"></p>
-        </div>
-    </div>
-
-    <div class="card" style="margin-top: 16px">
-        <h2>&#x1F4DC; Transaction Ledger</h2>
-        <table id="tx-table">
-            <thead><tr>
-                <th>ID</th><th>From</th><th>To</th><th>Amount</th>
-                <th>Status</th><th>Bridge</th><th>Hops</th><th>Settled</th>
-            </tr></thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-    <div class="card" style="margin-top: 16px">
-        <h2>&#x1FAB5; Activity Log</h2>
-        <div id="log"></div>
-    </div>
-</div>
+    </div><!-- /content -->
+</div><!-- /main -->
 
 <script>
     const API_BASE = 'https://upi-without-internet-6xo0.onrender.com/api';
@@ -137,42 +753,59 @@
         try {
             const m = await fetch(API_BASE + '/mesh/state').then(r => r.json());
             const devicesDiv = document.getElementById('devices');
-            devicesDiv.innerHTML = m.devices.map(d => `
+            let totalPackets = 0;
+            devicesDiv.innerHTML = m.devices.map(d => {
+                totalPackets += d.packetCount;
+                return `
                 <div class="device ${d.hasInternet ? 'bridge' : 'offline'}">
-                    <strong>${d.deviceId}</strong>
-                    <span class="badge ${d.hasInternet ? 'badge-online' : 'badge-offline'}">
-                        ${d.hasInternet ? '&#x1F310; 4G' : '&#x1F6AB; OFFLINE'}
-                    </span>
-                    <span class="small">holding ${d.packetCount} packet(s)</span>
-                    <div>${d.packetIds.map(id => `<span class="packet-id">${id}</span>`).join('')}</div>
-                </div>
-            `).join('');
-            document.getElementById('cacheInfo').textContent =
-                `Idempotency cache size: ${m.idempotencyCacheSize}`;
-        } catch (e) { log('&#x26A0;&#xFE0F; Could not load mesh state: ' + e.message); }
+                    <div class="device-top">
+                        <div>
+                            <div class="device-name">${d.deviceId}</div>
+                            <div class="device-meta">Holding ${d.packetCount} packet(s)</div>
+                        </div>
+                        <span class="badge ${d.hasInternet ? 'badge-online' : 'badge-offline'}">
+                            ${d.hasInternet ? '🌐 4G' : '🚫 OFFLINE'}
+                        </span>
+                    </div>
+                    <div class="packet-ids">${d.packetIds.map(id => `<span class="packet-id">${id.substring(0,8)}</span>`).join('')}</div>
+                </div>`;
+            }).join('');
+
+            document.getElementById('stat-devices').textContent = m.devices.length;
+            document.getElementById('stat-packets').textContent = totalPackets;
+            document.getElementById('stat-cache').textContent = m.idempotencyCacheSize;
+            document.getElementById('cacheInfo').textContent = `Idempotency cache size: ${m.idempotencyCacheSize}`;
+        } catch (e) { log('⚠️ Could not load mesh state: ' + e.message); }
 
         try {
             const accs = await fetch(API_BASE + '/accounts').then(r => r.json());
             document.querySelector('#accounts-table tbody').innerHTML = accs.map(a => `
-                <tr><td>${a.vpa}</td><td>${a.holderName}</td>
-                    <td class="balance">&#x20B9;${parseFloat(a.balance).toFixed(2)}</td></tr>
+                <tr>
+                    <td>${a.vpa}</td>
+                    <td>${a.holderName}</td>
+                    <td class="balance-cell">₹${parseFloat(a.balance).toFixed(2)}</td>
+                </tr>
             `).join('');
-        } catch (e) { log('&#x26A0;&#xFE0F; Could not load accounts: ' + e.message); }
+        } catch (e) { log('⚠️ Could not load accounts: ' + e.message); }
 
         try {
             const txs = await fetch(API_BASE + '/transactions').then(r => r.json());
+            document.getElementById('stat-settled').textContent = txs.filter(t => t.status === 'SETTLED').length;
             document.querySelector('#tx-table tbody').innerHTML = txs.length === 0
-                ? '<tr><td colspan="8" class="small" style="text-align:center">No settlements yet.</td></tr>'
+                ? '<tr><td colspan="8" class="small" style="text-align:center;padding:20px 0;">No settlements yet.</td></tr>'
                 : txs.map(t => `
                     <tr>
-                        <td>${t.id}</td><td>${t.senderVpa}</td><td>${t.receiverVpa}</td>
-                        <td class="balance">&#x20B9;${parseFloat(t.amount).toFixed(2)}</td>
-                        <td class="status-${t.status}">${t.status}</td>
-                        <td>${t.bridgeNodeId}</td><td>${t.hopCount}</td>
+                        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${t.id}</td>
+                        <td>${t.senderVpa}</td>
+                        <td>${t.receiverVpa}</td>
+                        <td class="balance-cell">₹${parseFloat(t.amount).toFixed(2)}</td>
+                        <td><span class="status-chip chip-${t.status}">${t.status}</span></td>
+                        <td class="small">${t.bridgeNodeId}</td>
+                        <td class="small">${t.hopCount}</td>
                         <td class="small">${new Date(t.settledAt).toLocaleTimeString()}</td>
                     </tr>
                 `).join('');
-        } catch (e) { log('&#x26A0;&#xFE0F; Could not load transactions: ' + e.message); }
+        } catch (e) { log('⚠️ Could not load transactions: ' + e.message); }
     }
 
     async function sendPacket() {
@@ -189,38 +822,38 @@
                 method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(body)
             }).then(r => r.json());
-            log(`&#x1F4E4; Packet ${r.packetId.substring(0,8)} encrypted & injected at ${r.injectedAt} (TTL ${r.ttl})`);
+            log(`📤 Packet ${r.packetId.substring(0,8)} encrypted & injected at ${r.injectedAt} (TTL ${r.ttl})`);
             log(`   ciphertext (truncated): ${r.ciphertextPreview}`);
             refresh();
-        } catch (e) { log('&#x26A0;&#xFE0F; sendPacket failed: ' + e.message); }
+        } catch (e) { log('⚠️ sendPacket failed: ' + e.message); }
     }
 
     async function gossip() {
         try {
             const r = await fetch(API_BASE + '/mesh/gossip', {method: 'POST'}).then(r => r.json());
-            log(`&#x1F504; Gossip: ${r.transfers} transfer(s) &#x2014; ${JSON.stringify(r.deviceCounts)}`);
+            log(`🔄 Gossip: ${r.transfers} transfer(s) — ${JSON.stringify(r.deviceCounts)}`);
             refresh();
-        } catch (e) { log('&#x26A0;&#xFE0F; gossip failed: ' + e.message); }
+        } catch (e) { log('⚠️ gossip failed: ' + e.message); }
     }
 
     async function flushBridges() {
         try {
             const r = await fetch(API_BASE + '/mesh/flush', {method: 'POST'}).then(r => r.json());
-            log(`&#x1F4E1; ${r.uploadsAttempted} bridge upload(s):`);
+            log(`📡 ${r.uploadsAttempted} bridge upload(s):`);
             r.results.forEach(res => {
-                log(`   ${res.bridgeNode} packet ${res.packetId} &#x2192; ${res.outcome}` +
+                log(`   ${res.bridgeNode} packet ${res.packetId} → ${res.outcome}` +
                     (res.reason ? ` (${res.reason})` : ''));
             });
             refresh();
-        } catch (e) { log('&#x26A0;&#xFE0F; flushBridges failed: ' + e.message); }
+        } catch (e) { log('⚠️ flushBridges failed: ' + e.message); }
     }
 
     async function resetMesh() {
         try {
             await fetch(API_BASE + '/mesh/reset', {method: 'POST'});
-            log('&#x1F5D1; mesh + idempotency cache cleared');
+            log('🗑 mesh + idempotency cache cleared');
             refresh();
-        } catch (e) { log('&#x26A0;&#xFE0F; reset failed: ' + e.message); }
+        } catch (e) { log('⚠️ reset failed: ' + e.message); }
     }
 
     refresh();
