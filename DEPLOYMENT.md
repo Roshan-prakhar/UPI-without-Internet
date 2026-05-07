@@ -172,12 +172,14 @@ const API_BASE = 'http://localhost:8080/api';
 ## 🚀 Production Deployment
 
 ### Backend Deployment
+
 ```bash
-# Build JAR
+# Build JAR (includes prod profile resources)
 .\mvnw.cmd clean package
 
-# Run production JAR
-java -jar target/upi-offline-mesh-0.0.1-SNAPSHOT.jar
+# Run production JAR with prod profile
+java -jar target/upi-offline-mesh-0.0.1-SNAPSHOT.jar \
+  --spring.profiles.active=prod
 ```
 
 ### Environment Variables
@@ -186,6 +188,9 @@ export SERVER_PORT=8080
 export DB_URL=jdbc:postgresql://localhost/upimesh
 export DB_USER=upimesh
 export DB_PASSWORD=secure_password
+export LOG_FILE=/var/log/upimesh/application.log
+export IDEMPOTENCY_TTL_SECONDS=86400
+export PACKET_MAX_AGE_SECONDS=86400
 export RSA_KEY_PATH=/path/to/rsa/private.key
 ```
 
@@ -196,6 +201,67 @@ export RSA_KEY_PATH=/path/to/rsa/private.key
 4. **Authentication**: Add bridge node certificates
 5. **Monitoring**: Add structured logging and metrics
 6. **Rate Limiting**: Implement per-bridge rate limits
+
+---
+
+### Frontend Packaging & Hosting
+
+1. **Build Artifact**: The frontend is static HTML/JS. Copy `index.html`, `upi-mesh-demo.html`, `enhanced-dashboard.html`, and the `/assets` folder (if added) into your web root.
+2. **API Endpoint**: Update `const API_BASE` in `index.html` to the deployed backend URL (e.g., `https://api.example.com/api`).
+3. **Static Hosting Options**:
+   - Nginx/Apache serving `/var/www/upimesh`
+   - S3/CloudFront or Azure Static Web Apps for CDN-backed hosting
+   - Docker container based on `nginx:alpine` with files copied to `/usr/share/nginx/html`
+4. **Cache Policy**: Enable gzip/brotli and set `Cache-Control: max-age=300` for HTML (short) and `max-age=86400` for JS/CSS.
+
+Example Nginx snippet:
+
+```nginx
+server {
+    listen 80;
+    server_name mesh.example.com;
+
+    root /var/www/upimesh;
+    index index.html;
+
+    location /api/ {
+        proxy_pass https://api.example.com/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+---
+
+### Container Deployment (Docker / Render)
+
+#### Build & test locally
+
+```bash
+# Build multi-stage image (uses Dockerfile)
+docker build -t upi-mesh-backend:latest .
+
+# Run locally; Render injects PORT so mirror that behaviour
+docker run --rm -e PORT=8080 -p 8080:8080 upi-mesh-backend:latest
+```
+
+#### Deploy on Render
+
+1. Push the repo (with `Dockerfile` + `.dockerignore`) to GitHub.
+2. In Render dashboard → **New** → **Web Service** → pick the repo.
+3. Environment: **Docker** (Render will run the `Dockerfile`).
+4. Set Environment Variables:
+   - `SPRING_PROFILES_ACTIVE=prod` *(already defaulted in image but can override)*
+   - `PORT=8080` *(Render injects automatically; Spring reads `PORT` → `server.port`)*
+   - `DB_URL`, `DB_USER`, `DB_PASSWORD`, `LOG_FILE`, `IDEMPOTENCY_TTL_SECONDS`, etc., as needed.
+5. Deploy. Render builds the image, runs `java -jar app.jar`, and exposes the service at the provided URL.
+
+> **Note:** If you continue using the in-memory H2 database for demos, you can omit the DB vars. For production, point `DB_URL` at Render’s managed PostgreSQL instance and seed credentials accordingly.
 
 ---
 

@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: upi-mesh-backend
+    runtime: docker
+    plan: free
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: PORT
+        value: 8080
+      - key: DB_URL
+        value: jdbc:postgresql://db.example.com:5432/upimesh
+      - key: DB_USER
+        value: upimesh
+      - key: DB_PASSWORD
+        sync: false
+      - key: LOG_FILE
+        value: /var/log/upimesh/application.log
+      - key: IDEMPOTENCY_TTL_SECONDS
+        value: "86400"
+      - key: PACKET_MAX_AGE_SECONDS
+        value: "86400"
